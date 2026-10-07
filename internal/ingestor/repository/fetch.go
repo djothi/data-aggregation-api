@@ -9,7 +9,7 @@ import (
 	"github.com/criteo/data-aggregation-api/internal/report"
 )
 
-const ingestorNumber = 7
+const ingestorNumber = 13
 
 // FetchAssets get data from all ingestors.
 func FetchAssets(reportCh chan report.Message) (*Assets, error) {
@@ -142,6 +142,76 @@ func FetchAssets(reportCh chan report.Message) (*Assets, error) {
 			fetchFailure <- report.Warning
 		} else {
 			repo.CmdbNTP = v
+		}
+	})
+
+	// Device (physical) interfaces
+	wg.Go(func() {
+		if v, err := cmdb.GetDeviceInterfaces(); err != nil {
+			reportCh <- report.Message{
+				Type:     report.IngestorMessage,
+				Severity: report.Warning,
+				Text:     err.Error(),
+			}
+			fetchFailure <- report.Warning
+		} else {
+			repo.CmdbDeviceInterfaces = v
+		}
+	})
+
+	// Logical interfaces
+	wg.Go(func() {
+		if v, err := cmdb.GetLogicalInterfaces(); err != nil {
+			reportCh <- report.Message{
+				Type:     report.IngestorMessage,
+				Severity: report.Warning,
+				Text:     err.Error(),
+			}
+			fetchFailure <- report.Warning
+		} else {
+			repo.CmdbLogicalInterfaces = v
+		}
+	})
+
+	// Port layouts
+	wg.Go(func() {
+		if v, err := cmdb.GetPortLayouts(); err != nil {
+			reportCh <- report.Message{
+				Type:     report.IngestorMessage,
+				Severity: report.Warning,
+				Text:     err.Error(),
+			}
+			fetchFailure <- report.Warning
+		} else {
+			repo.CmdbPortLayouts = v
+		}
+	})
+
+	// Links
+	wg.Go(func() {
+		if v, err := cmdb.GetLinks(); err != nil {
+			reportCh <- report.Message{
+				Type:     report.IngestorMessage,
+				Severity: report.Warning,
+				Text:     err.Error(),
+			}
+			fetchFailure <- report.Warning
+		} else {
+			repo.CmdbLinks = v
+		}
+	})
+
+	// Management routes
+	wg.Go(func() {
+		if v, err := cmdb.GetManagementRoutes(); err != nil {
+			reportCh <- report.Message{
+				Type:     report.IngestorMessage,
+				Severity: report.Error,
+				Text:     err.Error(),
+			}
+			fetchFailure <- report.Error
+		} else {
+			repo.CmdbManagementRoutes = v
 		}
 	})
 
